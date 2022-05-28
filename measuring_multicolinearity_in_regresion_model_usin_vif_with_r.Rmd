@@ -1,0 +1,88 @@
+---
+title: "VARIANCE INFLATION FACTOR AS A TEST OF MULTICOLINEARITY IN MULTIPLE REGRESSION MODEL"
+author: "Daniel James"
+date: "`r Sys.Date()`"
+output: html_document
+---
+  
+  ```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = "",
+                      collapse = TRUE,
+                      echo = TRUE,
+                      error = TRUE, # do not interrupt in case of errors
+                      message = FALSE,
+                      warning = FALSE,
+                      comma <- function(x) format(x, digits = 2, big.mark = ",")
+)
+````
+### Load packages and prepare multicore process
+### This recipe explains how to check multicollinearity in regression using R.
+
+### Variance inflation factor (VIF) is used for detecting the multicollinearity in a model, which measures the correlation and strength of correlation between the independent variables in a regression model. - If the value of VIF is less than 1: no correlation - If the value of VIF is between 1-5, there is moderate correlation - If the value of VIF is above 5: severe correlation
+
+### Step 1 - Install necessary packages
+
+```{r install_packages, include = TRUE}
+library(pacman)
+
+p_load(caTools)    # For Linear regression 
+p_load(car)        # To check multicollinearity 
+p_load(quantmod)
+p_load(MASS)
+p_load(corrplot)   # plot correlation plot
+````
+
+### Step 2 - Define a Dataframe
+
+```{r creat_data_frame, include = TRUE}
+data <- data.frame(marks_scored = c(35,42,24,27,37),        # marks : dependent variable(y)
+                   no_hours_studied = c(5,4,2,3,4),
+                   no_hours_played = c(4,3,4,2,2),
+                   attendance = c(8,8,4,6,9))
+
+head(data)
+````
+
+### Step 3 - Create a linear regression model
+
+```{r Create_a_linear_regression_model, include = TRUE}
+model_all <- lm(marks_scored ~ ., data=data)  # with all the independent variables in the dataframe
+
+summary(model_all)
+````
+
+### Step 4 - Use the vif() function
+
+```{r Use_the_vif_function, include = TRUE}
+vif(model_all)
+````
+
+### Step 5 - Visualize VIF Values
+
+```{r Visualize_VIF_Values, include = TRUE}
+
+vif_values <- vif(model_all)           #create vector of VIF values
+
+barplot(vif_values, main = "VIF Values", horiz = TRUE, col = "steelblue") #create horizontal bar chart to display each VIF value
+
+abline(v = 5, lwd = 3, lty = 2)    #add vertical line at 5 as after 5 there is severe correlation
+````
+
+### After plotting the graph, user can does decide which variable to remove i.e not include in model building and check whether the coreesponding R squared value improves.
+
+### Step 6 - Multicollinearity test can be checked by
+
+```{r check_for_multicolinearity, include = TRUE}
+data_x <- data[,2:4]                                       # independent variables 
+
+var <- cor(data_x)                                         # independent variables correlation matrix 
+
+var_inv <- ginv(var)                                       # independent variables inverse correlation matrix 
+
+colnames(var_inv) <- colnames(data_x)                      # rename the row names and column names
+rownames(var_inv) <- colnames(data_x)
+
+corrplot(var_inv,method='number',is.corr = F)              # visualize the multicollinearity
+#{"mode":"full","isActive":false}
+````
